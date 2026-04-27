@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sistema de Controle de Estoque</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <h1>📦 StockFlow</h1>
+      <p class="descricao">
+        Cadastre produtos e acompanhe a quantidade disponível.
+      </p>
+
+      <form action="/cadastrar" method="post">
+        <div class="grupo-form">
+          <label for="nome">Nome do produto</label>
+          <input
+            type="text"
+            id="nome"
+            name="nome"
+            placeholder="Digite o nome do produto"
+          />
+        </div>
+
+        <div class="linha">
+          <div class="grupo-form">
+            <label for="codigo">Código do produto</label>
+            <input
+              type="text"
+              id="codigo"
+              name="codigo"
+              placeholder="Digite o código"
+            />
+          </div>
+
+          <div class="grupo-form">
+            <label for="quantidade">Quantidade</label>
+            <input
+              type="number"
+              id="quantidade"
+              name="quantidade"
+              min="0"
+              placeholder="Digite a quantidade"
+            />
+          </div>
+        </div>
+
+        <div class="grupo-form">
+          <label for="preco">Preço</label>
+          <input
+            type="number"
+            id="preco"
+            name="preco"
+            step="0.01"
+            min="0"
+            placeholder="Digite o preço"
+          />
+        </div>
+
+        <div class="botoes">
+          <!--removi o botão de listar para deixar a interface mais limpa, já que os produtos cadastrados já aparecem logo abaixo do formulário -->
+          <button type="submit" class="btn-cadastrar">Cadastrar Produto</button>
+        </div>
+      </form>
+
+      <section class="resumo">
+        <h2>Resumo do Estoque</h2>
+        <!--coloquei o total de produtos cadastrados e o valor total em estoque-->
+        <p><strong>Total de produtos cadastrados:</strong> {{ produtos|length }}</p>
+        <p><strong>Valor total em estoque:</strong> R$ {{ "%.2f"|format(total_geral) }}</p>
+      </section>
+
+      <section class="lista-produtos">
+        <!--coloquei um campo de busca para facilitar a localização de produtos específicos. -->
+        <h2>Produtos Cadastrados</h2>
+        <input
+  type="text"
+  id="busca"
+  placeholder="🔍 Buscar produto..."
+  style="margin-bottom: 15px;"
+  oninput="filtrar()"
+/>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Nome</th>
+              <th>Código</th>
+              <th>Quantidade</th>
+              <th>Preço</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in produtos %}
+            <tr id="produto-{{ loop.index0 }}" class="{{ 'baixo-estoque' if p.quantidade < 5 }}">
+              <td>{{p.nome}}</td>
+              <td>{{p.codigo}}</td>
+              <td>
+                <a href="/editar/{{ loop.index0 }}/diminuir" class="btn-editar"
+                  >-</a
+                >
+                {{ p.quantidade }}
+                <a href="/editar/{{ loop.index0 }}/aumentar" class="btn-editar"
+                  >+</a
+                >
+                {% if p.quantidade < 5%}
+                <span class="aviso-estoque">⚠️ ESTOQUE BAIXO</span>
+                {% endif %}
+              </td>
+              <td>R$ {{ "%.2f"|format(p.preco)}}</td>
+              <td>R$ {{"%.2f"|format(p.total_item)}}</td>
+              <td>
+                <!--coloquei os botões de editar para aumentar ou diminuir a quantidade do produto, e também um aviso visual para produtos com estoque baixo (menos de 5 unidades) -->
+                <a href="/remover/{{ loop.index0 }}" class="btn-excluir"
+                  >Excluir</a
+                >
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </section>
+      <div class="total_geral">
+        Total em Estoque: <strong>R$ {{ "%.2f"|format(total_geral) }}</strong>
+      </div>
+    </div>
+    <script>
+  function filtrar() {
+    const texto = document.getElementById("busca").value.toLowerCase();
+    const linhas = document.querySelectorAll("tbody tr");
+
+    linhas.forEach(linha => {
+      const conteudo = linha.textContent.toLowerCase();
+      linha.style.display = conteudo.includes(texto) ? "" : "none";
+    });
+  }
+</script>
+  </body>
+</html>
